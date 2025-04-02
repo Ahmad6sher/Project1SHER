@@ -1,71 +1,29 @@
-import os
-import re
+# Project 1 — Network Log Analysis
 
-def get_user_auth_times(user_id):
-    """
-    Returns a list of the date and time of logins for user user_id from log/auth.log.x
-    """
-    auth_times = []
-    log_dir = 'log'
-    pattern = re.compile(r'^(.*?\d{2}:\d{2}:\d{2}).*session opened for user\s+{}'.format(re.escape(user_id)))
+This project implements three Python functions to analyze authentication and firewall logs.
 
-    for filename in os.listdir(log_dir):
-        if filename.startswith('auth.log'):
-            with open(os.path.join(log_dir, filename), 'r') as file:
-                for line in file:
-                    match = pattern.search(line)
-                    if match:
-                        auth_times.append(match.group(1))
-    return auth_times
+## Functions
 
-def get_invalid_logins():
-    """
-    Returns a dictionary mapping invalid user ids to # of failed logins on log/auth.log.x
-    """
-    invalid_logins = {}
-    log_dir = 'log'
-    pattern = re.compile(r'Invalid user (\S+) from')
+get_user_auth_times(user_id)  
+Returns a list of the date and time of logins for a given user from log/auth.log.x files.
 
-    for filename in os.listdir(log_dir):
-        if filename.startswith('auth.log'):
-            with open(os.path.join(log_dir, filename), 'r') as file:
-                for line in file:
-                    match = pattern.search(line)
-                    if match:
-                        user = match.group(1)
-                        invalid_logins[user] = invalid_logins.get(user, 0) + 1
-    return invalid_logins
+get_invalid_logins()  
+Returns a dictionary mapping invalid user IDs to the number of failed login attempts from log/auth.log.x files.
 
-def compare_invalid_IPs():
-    """
-    Returns a set of IPs that were both used for invalid logins and blocked by the firewall
-    """
-    auth_ips = set()
-    fw_ips = set()
-    log_dir = 'log'
+compare_invalid_IPs()  
+Returns a set of IP addresses that are used for both invalid logins and blocked by the firewall using log/auth.log and log/ufw.log files.
 
-    auth_pattern = re.compile(r'Invalid user \S+ from (\d+\.\d+\.\d+\.\d+)')
-    fw_pattern = re.compile(r'\[UFW BLOCK\].*SRC=(\d+\.\d+\.\d+\.\d+)')
+## How to Run
 
-    for filename in os.listdir(log_dir):
-        if filename.startswith('auth.log'):
-            with open(os.path.join(log_dir, filename), 'r') as file:
-                for line in file:
-                    match = auth_pattern.search(line)
-                    if match:
-                        auth_ips.add(match.group(1))
+1. Place all your log files inside a folder named log/
+2. Run the script using:
 
-    for filename in os.listdir(log_dir):
-        if filename.startswith('ufw.log'):
-            with open(os.path.join(log_dir, filename), 'r') as file:
-                for line in file:
-                    match = fw_pattern.search(line)
-                    if match:
-                        fw_ips.add(match.group(1))
+python3 main.py
 
-    return auth_ips & fw_ips
+## Example Output
 
-if __name__ == "__main__":
-    print(get_user_auth_times("tylermoore"))
-    print(get_invalid_logins())
-    print(compare_invalid_IPs())
+['Feb 21 13:29:56', 'Feb 21 13:36:38', 'Feb 21 13:33:56']
+
+{'admin': 17, 'oracle': 21, 'test': 21, ...}
+
+{'141.98.11.23', '64.62.197.182', '45.125.65.126', ...}
